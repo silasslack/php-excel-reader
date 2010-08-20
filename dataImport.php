@@ -21,6 +21,10 @@ function importToNewTable($file,$tableName){
 
     $longTexts = '';
 
+
+    //This works out which columns contain cells with more than 250 characters in them
+    //so that we can make the field type LONGTEXT instead of VARCHAR
+
     for($rowno=2;$rowno<$rowcount;$rowno++){
         for($colno=1;$colno<$colcount;$colno++){
             if (strlen($data->value($rowno,$colno))>250){
@@ -28,14 +32,17 @@ function importToNewTable($file,$tableName){
             }
         }
     }
-
+    //now we put these into an array for use later:
     $longTexts = array_values(array_unique(explode(',',substr($longTexts,0,-1))));
 
+    //First we drop any table with the same name, then we build the create table statement by going through the column heads in the
+    //sheet again:
     mysql_query("DROP TABLE `{$tableName}`");
     $sql = "CREATE TABLE `{$tableName}` (`line_id` INT(10) NOT NULL AUTO_INCREMENT";
     for($colno=1;$colno<=$colcount;$colno++){
         $cell = $data->value(1,$colno);
         $colsArray[$colno] = $cell;
+        //This checks to see if this particular column has been previously identified as one that should be LONGTEXT rather than VARCHAR:
         if(in_array($colno,$longTexts)){
             $sql = $sql.", `{$cell}` LONGTEXT NOT NULL";
         }
@@ -44,10 +51,14 @@ function importToNewTable($file,$tableName){
         }
     }
     $sql = $sql.", PRIMARY KEY (`line_id`))";
-    mysql_query($sql);
+
+    //Then we execute the create table:
+    if(!mysql_query($sql)){
+        echo "Could not create the table: ".mysql_error();
+    }
 
     
-
+    //This goes through the whole sheet building the insert statement from the data:
     $actualInserts=0;
     for($rowno=2;$rowno<=$rowcount;$rowno++){
         
@@ -61,6 +72,8 @@ function importToNewTable($file,$tableName){
             $sql = $sql."'".mysql_real_escape_string($data->value($rowno,$colno))."',";
         }
         $sql = substr($sql,0,-1).")";
+
+        //This executes the insert and counts the successful inserts:
         if(!mysql_query($sql)){
             echo mysql_error();
         }
@@ -78,13 +91,13 @@ function importToExistingTable($file,$tableName){
     $colcount = $data->colcount();
     $rowcount = $data->rowcount();
 
+    //This gets the field names in the database so that they can be confirmed as matching those in the spreadsheet:
     $sql = mysql_query("SELECT * FROM `{$tableName}`");
     for($no=0;$no<=$colcount;$no++){
         $tableColsArray[$no] = mysql_field_name($sql,$no);
     }
-    echo "<br />";
-    print_r($tableColsArray);
-    echo "<br />";
+
+    //This goes through the spreadsheet and compares the columns with those in the database:
     for($colno=1;$colno<=$colcount;$colno++){
         $cell = $data->value(1,$colno);
         if($tableColsArray[$colno]!=$cell){
@@ -95,7 +108,7 @@ function importToExistingTable($file,$tableName){
         }
     }
     
-    
+    //This goes through the whole sheet building the insert statement from the data:
     $actualInserts=0;
     for($rowno=2;$rowno<=$rowcount;$rowno++){
         
@@ -109,6 +122,7 @@ function importToExistingTable($file,$tableName){
             $sql = $sql."'".mysql_real_escape_string($data->value($rowno,$colno))."',";
         }
         $sql = substr($sql,0,-1).")";
+        //This executes the insert and counts the successful inserts:
         if(!mysql_query($sql)){
             echo mysql_error();
         }
@@ -121,5 +135,5 @@ function importToExistingTable($file,$tableName){
 }
 
 
-importToExistingTable($file,$tableName);
+//importToExistingTable($file,$tableName);
 ?>
