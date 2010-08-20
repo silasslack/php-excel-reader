@@ -1,0 +1,7 @@
+CSVImport/txtexports/*.txt
+CSVImport/txtexports/*.txt.gz
+CSVImport/txtexports/*.gz
+CSVImport/txtexports/*.tar
+nbproject/*
+.DS_Store
+*.DS_Store
