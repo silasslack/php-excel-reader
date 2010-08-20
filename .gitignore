@@ -3,5 +3,7 @@ CSVImport/txtexports/*.txt.gz
 CSVImport/txtexports/*.gz
 CSVImport/txtexports/*.tar
 nbproject/*
+config.php
 .DS_Store
 *.DS_Store
+*.xls
