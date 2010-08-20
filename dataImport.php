@@ -135,5 +135,5 @@ function importToExistingTable($file,$tableName){
 }
 
 
-//importToExistingTable($file,$tableName);
+importToExistingTable($file,$tableName);
 ?>
